@@ -1,0 +1,19 @@
+{
+  "name": "chatteman",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ChatTeman - kerangka project Framework7 + Capacitor (tahap: APK kosong)",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "cap:sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "framework7": "^8.3.0",
+    "framework7-icons": "^5.0.5",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/android": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}
