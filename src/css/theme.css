@@ -1,0 +1,51 @@
+/* ChatTeman - theme.css
+   Tema visual ala Badoo: gradient merah-oranye hangat, kartu bulat,
+   tombol aksi bulat besar (suka/lewati). Dipisah dari app.css supaya
+   warna/tema gampang diganti tanpa mengubah struktur layout. */
+
+:root {
+  --ct-primary: #fd267a;
+  --ct-primary-2: #ff6036;
+  --ct-gradient: linear-gradient(135deg, var(--ct-primary), var(--ct-primary-2));
+  --ct-ink: #1f1620;
+  --ct-ink-soft: #7a6b72;
+  --ct-bg: #fff7f5;
+  --ct-card: #ffffff;
+  --ct-line: #f4e3e0;
+  --ct-online: #2ecc71;
+  --ct-offline: #b9a9ad;
+  --ct-danger: #e0355b;
+  --ct-radius: 18px;
+}
+
+body, html, #app {
+  background: var(--ct-bg);
+  color: var(--ct-ink);
+}
+
+.chatteman-page h1,
+.chatteman-page h2,
+.chatteman-page h3 {
+  color: var(--ct-ink);
+}
+
+/* Tombol utama ala Badoo: gradient, bulat penuh */
+.ct-btn-primary.button {
+  background: var(--ct-gradient);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 22px -8px rgba(253, 38, 122, 0.55);
+}
+
+.ct-btn-primary.button:active {
+  opacity: 0.92;
+}
+
+.ct-link {
+  color: var(--ct-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chip.online { background: rgba(46, 204, 113, 0.15); color: #1f9c53; }
+.chip.offline { background: rgba(224, 53, 91, 0.12); color: var(--ct-danger); }
