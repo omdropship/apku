@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Hasil build frontend (dibuat ulang otomatis oleh `npm run build`)
+www/
+
+# Android platform Capacitor
+# Folder ini DIBUAT OTOMATIS oleh GitHub Actions lewat `npx cap add android`
+# jadi tidak perlu (dan sebaiknya tidak) ikut di-commit ke Git.
+android/
+
+# Misc
+.DS_Store
+*.log
