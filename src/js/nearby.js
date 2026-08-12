@@ -83,3 +83,14 @@ async function chattemanNearbyFetchList(filters) {
 
   return { ok: true, message: res.message || 'OK', users: res.data || [] };
 }
+
+/**
+ * "Suka" seseorang dari kartu swipe -- kirim permintaan pertemanan
+ * (POST friends/add) lewat helper generik chattemanFriendAction di
+ * profile.js. Dipisah jadi fungsi sendiri di sini supaya app.js cukup
+ * panggil satu nama fungsi yang jelas konteksnya: "like dari nearby".
+ * @returns {Promise<{ok: boolean, message: string}>}
+ */
+async function chattemanNearbyLikeUser(guid) {
+  return chattemanFriendAction('add', guid);
+}
