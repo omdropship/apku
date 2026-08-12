@@ -1,0 +1,28 @@
+/* ChatTeman - app.css
+   Style dasar untuk tahap kerangka project.
+   Belum ada styling fitur, cukup placeholder minimal. */
+
+body {
+  margin: 0;
+  font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: #eee;
+  color: #333;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.chip.online {
+  background: #d4f7dc;
+  color: #1a7f37;
+}
+
+.chip.offline {
+  background: #fde2e1;
+  color: #b3261e;
+}
