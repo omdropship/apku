@@ -15,15 +15,73 @@
 </head>
 <body>
   <div id="app">
-    <!-- Framework7 View/Main View -->
     <div class="view view-main safe-areas">
       <div class="page">
-        <div class="page-content" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-          <div style="text-align:center;">
-            <h1>ChatTeman</h1>
-            <p>Project berhasil dijalankan</p>
-            <p id="network-status" class="chip">Mengecek koneksi...</p>
+        <div class="page-content">
+
+          <!-- ============ HALAMAN LOGIN ============ -->
+          <div id="page-login" class="chatteman-page">
+            <div class="login-wrap">
+              <h1>ChatTeman</h1>
+              <p class="login-subtitle">Masuk untuk mulai cari teman terdekat</p>
+
+              <form id="login-form">
+                <div class="list no-hairlines-md">
+                  <ul>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Username / Email</div>
+                        <div class="item-input-wrap">
+                          <input type="text" id="login-username" name="username" required autocomplete="username" />
+                        </div>
+                      </div>
+                    </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Password</div>
+                        <div class="item-input-wrap">
+                          <input type="password" id="login-password" name="password" required autocomplete="current-password" />
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <p id="login-error" class="chip offline" style="display:none;"></p>
+
+                <button type="submit" id="login-submit" class="button button-fill button-large">
+                  Masuk
+                </button>
+              </form>
+            </div>
           </div>
+
+          <!-- ============ HALAMAN NEARBY ============ -->
+          <div id="page-nearby" class="chatteman-page" style="display:none;">
+            <div class="nearby-header">
+              <div>
+                <strong id="nearby-username">-</strong>
+                <p id="network-status" class="chip">Mengecek koneksi...</p>
+              </div>
+              <button id="logout-btn" class="button button-small">Keluar</button>
+            </div>
+
+            <div class="nearby-actions">
+              <button id="update-location-btn" class="button button-fill">
+                Perbarui Lokasi Saya
+              </button>
+              <button id="refresh-list-btn" class="button button-outline">
+                Muat Ulang Daftar
+              </button>
+            </div>
+
+            <p id="nearby-status" class="chip" style="display:none;"></p>
+
+            <div id="nearby-list" class="nearby-list">
+              <!-- Kartu user terdekat dirender via JS (nearby.js + app.js) -->
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
