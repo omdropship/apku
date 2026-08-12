@@ -20,8 +20,9 @@
         <div class="page-content">
 
           <!-- ============ HALAMAN LOGIN ============ -->
-          <div id="page-login" class="chatteman-page">
+          <div id="page-login" class="chatteman-page no-tabbar">
             <div class="login-wrap">
+              <div class="login-logo">CT</div>
               <h1>ChatTeman</h1>
               <p class="login-subtitle">Masuk untuk mulai cari teman terdekat</p>
 
@@ -47,43 +48,227 @@
                   </ul>
                 </div>
 
-                <p id="login-error" class="chip offline" style="display:none;"></p>
+                <p id="login-error" class="ct-status-msg chip offline" style="display:none;"></p>
 
-                <button type="submit" id="login-submit" class="button button-fill button-large">
+                <button type="submit" id="login-submit" class="button button-fill button-large ct-btn-primary">
                   Masuk
                 </button>
               </form>
+
+              <p class="login-switch">
+                Belum punya akun? <a href="#" id="go-to-register" class="ct-link">Daftar</a>
+              </p>
             </div>
           </div>
 
-          <!-- ============ HALAMAN NEARBY ============ -->
+          <!-- ============ HALAMAN REGISTER ============ -->
+          <div id="page-register" class="chatteman-page no-tabbar" style="display:none;">
+            <div class="login-wrap">
+              <div class="login-logo">CT</div>
+              <h1>Buat Akun</h1>
+              <p class="login-subtitle">Gratis, langsung aktif</p>
+
+              <form id="register-form">
+                <div class="list no-hairlines-md">
+                  <ul>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Username</div>
+                        <div class="item-input-wrap">
+                          <input type="text" id="reg-username" name="username" required autocomplete="username" />
+                        </div>
+                      </div>
+                    </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Email</div>
+                        <div class="item-input-wrap">
+                          <input type="email" id="reg-email" name="email" required autocomplete="email" />
+                        </div>
+                      </div>
+                    </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Password</div>
+                        <div class="item-input-wrap">
+                          <input type="password" id="reg-password" name="password" required autocomplete="new-password" />
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <p id="reg-username-hint" class="field-hint"></p>
+                <p id="register-error" class="ct-status-msg chip offline" style="display:none;"></p>
+
+                <button type="submit" id="register-submit" class="button button-fill button-large ct-btn-primary">
+                  Daftar
+                </button>
+              </form>
+
+              <p class="login-switch">
+                Sudah punya akun? <a href="#" id="go-to-login" class="ct-link">Masuk</a>
+              </p>
+            </div>
+          </div>
+
+          <!-- ============ HALAMAN NEARBY (RADAR / SWIPE) ============ -->
           <div id="page-nearby" class="chatteman-page" style="display:none;">
             <div class="nearby-header">
               <div>
-                <strong id="nearby-username">-</strong>
-                <p id="network-status" class="chip">Mengecek koneksi...</p>
+                <div class="nearby-header-title">Terdekat</div>
+                <p id="network-status" class="chip" style="display:inline-flex;">Mengecek koneksi...</p>
               </div>
-              <button id="logout-btn" class="button button-small">Keluar</button>
+              <div class="nearby-header-actions">
+                <button id="update-location-btn" class="icon-btn" title="Perbarui lokasi saya">📍</button>
+                <button id="refresh-list-btn" class="icon-btn" title="Muat ulang">↻</button>
+              </div>
             </div>
 
-            <div class="nearby-actions">
-              <button id="update-location-btn" class="button button-fill">
-                Perbarui Lokasi Saya
+            <p id="nearby-status" class="ct-status-msg chip" style="display:none;"></p>
+
+            <div class="ct-swipe-stack" id="nearby-swipe-stack">
+              <!-- Kartu dirender via JS (nearby.js + app.js) -->
+            </div>
+
+            <div class="ct-swipe-actions">
+              <button id="swipe-pass-btn" class="ct-fab ct-fab-pass" title="Lewati">✕</button>
+              <button id="swipe-like-btn" class="ct-fab ct-fab-like" title="Suka">♥</button>
+            </div>
+          </div>
+
+          <!-- ============ HALAMAN PESAN (DAFTAR PERCAKAPAN) ============ -->
+          <div id="page-messages" class="chatteman-page" style="display:none;">
+            <div class="nearby-header">
+              <div class="nearby-header-title">Pesan</div>
+            </div>
+            <p id="messages-status" class="ct-status-msg chip" style="display:none;"></p>
+            <div id="messages-list" class="ct-conv-list"></div>
+          </div>
+
+          <!-- ============ HALAMAN PERCAKAPAN (CHAT 1-ON-1) ============ -->
+          <div id="page-chat" class="chatteman-page no-tabbar ct-chat-page" style="display:none; padding:0;">
+            <div class="ct-chat-header">
+              <button id="chat-back-btn" class="ct-back-btn">←</button>
+              <div id="chat-avatar" class="ct-avatar">?</div>
+              <div>
+                <strong id="chat-name">-</strong>
+                <small id="chat-status">-</small>
+              </div>
+            </div>
+            <div id="chat-body" class="ct-chat-body"></div>
+            <form id="chat-input-row" class="ct-chat-input-row">
+              <input type="text" id="chat-input" placeholder="Tulis pesan..." autocomplete="off" />
+              <button type="submit" class="ct-send-btn">➤</button>
+            </form>
+          </div>
+
+          <!-- ============ HALAMAN PROFIL ============ -->
+          <div id="page-profile" class="chatteman-page" style="display:none;">
+            <div class="ct-profile-header">
+              <div class="ct-profile-avatar-wrap">
+                <div id="profile-avatar" class="ct-profile-avatar">?</div>
+              </div>
+              <h2 id="profile-name">-</h2>
+              <div class="ct-username" id="profile-username">-</div>
+              <p class="ct-bio" id="profile-bio"></p>
+
+              <div class="ct-stat-row">
+                <div class="ct-stat">
+                  <strong id="stat-friends">0</strong>
+                  <span>Teman</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ct-menu-list">
+              <button class="ct-menu-item" id="menu-friends" data-panel="friends">
+                <span class="ct-menu-left"><span class="ct-menu-icon">👥</span> Teman</span>
+                <span class="ct-menu-count" id="count-friends">0 ›</span>
               </button>
-              <button id="refresh-list-btn" class="button button-outline">
-                Muat Ulang Daftar
+              <button class="ct-menu-item" id="menu-requests" data-panel="requests">
+                <span class="ct-menu-left"><span class="ct-menu-icon">➕</span> Permintaan Masuk</span>
+                <span class="ct-menu-count" id="count-requests">0 ›</span>
+              </button>
+              <button class="ct-menu-item" id="menu-sent" data-panel="sent">
+                <span class="ct-menu-left"><span class="ct-menu-icon">📤</span> Terkirim</span>
+                <span class="ct-menu-count" id="count-sent">0 ›</span>
+              </button>
+              <button class="ct-menu-item" id="menu-blocked" data-panel="blocked">
+                <span class="ct-menu-left"><span class="ct-menu-icon">🚫</span> Diblokir</span>
+                <span class="ct-menu-count" id="count-blocked">0 ›</span>
+              </button>
+              <button class="ct-menu-item" id="menu-edit-profile">
+                <span class="ct-menu-left"><span class="ct-menu-icon">✏️</span> Edit Profil</span>
+                <span class="ct-menu-count">›</span>
+              </button>
+              <button class="ct-menu-item" id="logout-btn">
+                <span class="ct-menu-left"><span class="ct-menu-icon">🚪</span> Keluar</span>
+                <span class="ct-menu-count">›</span>
               </button>
             </div>
 
-            <p id="nearby-status" class="chip" style="display:none;"></p>
+            <!-- Panel dinamis: teman / permintaan / terkirim / diblokir -->
+            <div id="profile-panel" style="display:none; margin-top:10px;">
+              <div class="nearby-header">
+                <strong id="profile-panel-title">-</strong>
+                <button id="profile-panel-close" class="icon-btn">✕</button>
+              </div>
+              <div id="profile-panel-list" class="ct-people-list ct-conv-list"></div>
+            </div>
 
-            <div id="nearby-list" class="nearby-list">
-              <!-- Kartu user terdekat dirender via JS (nearby.js + app.js) -->
+            <!-- Panel edit profil -->
+            <div id="edit-profile-panel" style="display:none; margin-top:10px;">
+              <div class="nearby-header">
+                <strong>Edit Profil</strong>
+                <button id="edit-profile-close" class="icon-btn">✕</button>
+              </div>
+              <form id="edit-profile-form">
+                <div class="list no-hairlines-md">
+                  <ul>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Nama Lengkap</div>
+                        <div class="item-input-wrap">
+                          <input type="text" id="edit-name" name="name" />
+                        </div>
+                      </div>
+                    </li>
+                    <li class="item-content item-input">
+                      <div class="item-inner">
+                        <div class="item-title item-label">Bio</div>
+                        <div class="item-input-wrap">
+                          <textarea id="edit-bio" name="bio" rows="3"></textarea>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <p id="edit-profile-status" class="ct-status-msg chip" style="display:none;"></p>
+                <button type="submit" class="button button-fill button-large ct-btn-primary">Simpan</button>
+              </form>
             </div>
           </div>
 
         </div>
       </div>
+    </div>
+
+    <!-- ============ BOTTOM TAB BAR (tampil setelah login) ============ -->
+    <div id="ct-tabbar" class="ct-tabbar" style="display:none;">
+      <button class="ct-tab" data-tab="nearby">
+        <span class="ct-tab-icon">📍</span>
+        <span>Terdekat</span>
+      </button>
+      <button class="ct-tab" data-tab="messages">
+        <span class="ct-tab-icon">💬</span>
+        <span>Pesan</span>
+        <span id="messages-tab-badge" class="ct-tab-badge" style="display:none;">0</span>
+      </button>
+      <button class="ct-tab" data-tab="profile">
+        <span class="ct-tab-icon">👤</span>
+        <span>Profil</span>
+      </button>
     </div>
   </div>
 
@@ -96,6 +281,7 @@
   <script src="js/auth.js"></script>
   <script src="js/nearby.js"></script>
   <script src="js/messages.js"></script>
+  <script src="js/profile.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
