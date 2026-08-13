@@ -173,76 +173,91 @@
   font-size: 1.05rem;
 }
 
-/* ===== Kartu swipe (radar/nearby) ===== */
-.ct-swipe-stack {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  height: 62vh;
-  min-height: 380px;
+/* ===== Nearby: topbar ringkas + filter radius (sesuai foto referensi) ===== */
+.ct-nearby-page { padding-bottom: 0; }
+
+.ct-nearby-topbar {
+  padding: calc(10px + env(safe-area-inset-top)) 12px 8px;
 }
 
-.ct-swipe-card {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--ct-radius);
-  overflow: hidden;
-  background: var(--ct-card);
-  box-shadow: 0 18px 34px -16px rgba(31, 22, 32, 0.35);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+.ct-nearby-topbar-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.ct-swipe-card .ct-card-photo {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(160deg, #ffd7c2, #ffb0c6);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 4rem; color: #fff; font-weight: 800;
-}
+.ct-nearby-topbar-row #network-status { font-size: 0.78rem; color: var(--ct-ink-soft); }
+.ct-nearby-locate-btn { width: 32px; height: 32px; }
 
-.ct-swipe-card .ct-card-photo img {
-  width: 100%; height: 100%; object-fit: cover;
+.ct-radius-filter {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+  -ms-overflow-style: none; scrollbar-width: none;
 }
+.ct-radius-filter::-webkit-scrollbar { display: none; }
 
-.ct-card-gradient {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 45%;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.72));
+.ct-radius-chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ct-line);
+  background: #fff;
+  color: var(--ct-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
-
-.ct-card-info {
-  position: relative;
-  padding: 18px;
+.ct-radius-chip.active {
+  background: var(--ct-gradient);
+  border-color: transparent;
   color: #fff;
 }
 
-.ct-card-info .name-row { display: flex; align-items: baseline; gap: 8px; }
-.ct-card-info .name-row strong { font-size: 1.4rem; }
-.ct-card-info .name-row span { font-size: 1.05rem; opacity: 0.9; }
-.ct-card-info .meta { font-size: 0.85rem; opacity: 0.92; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
-
-
-.ct-swipe-empty {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; padding: 24px; color: var(--ct-ink-soft);
-}
-.ct-swipe-empty .emoji { font-size: 2.6rem; margin-bottom: 10px; }
-
-.ct-swipe-actions {
-  display: flex; justify-content: center; gap: 22px;
-  margin-top: 22px;
+/* ===== Nearby: grid 3 kolom, foto portrait, nama/umur di bawah ===== */
+.ct-nearby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 6px;
+  padding: 4px 10px calc(90px + env(safe-area-inset-bottom));
 }
 
-.ct-fab {
-  width: 60px; height: 60px; border-radius: 50%;
-  border: none; display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; box-shadow: 0 10px 20px -8px rgba(0,0,0,0.28);
+.ct-nearby-card { display: flex; flex-direction: column; cursor: pointer; }
+.ct-nearby-card:active .ct-nearby-photo { transform: scale(0.96); }
+
+.ct-nearby-card .ct-nearby-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #ffd7c2, #ffb0c6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 1.6rem;
+  transition: transform 0.12s ease;
 }
-.ct-fab-pass { background: #fff; color: var(--ct-ink-soft); border: 1px solid var(--ct-line); }
-.ct-fab-like { background: var(--ct-gradient); color: #fff; width: 68px; height: 68px; font-size: 1.7rem; }
+
+.ct-nearby-card .ct-nearby-photo img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.ct-nearby-card .ct-nearby-meta {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ct-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ct-nearby-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--ct-ink-soft);
+  padding: 60px 24px;
+}
+.ct-nearby-empty .emoji svg { width: 40px; height: 40px; stroke-width: 1.6; color: var(--ct-ink-soft); }
+.ct-nearby-empty .emoji { margin-bottom: 10px; }
 
 /* ===== Pesan (list) ===== */
 .ct-conv-list { display: flex; flex-direction: column; }
