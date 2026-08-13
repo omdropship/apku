@@ -269,51 +269,23 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ============ BOTTOM NAV KHUSUS NEARBY (5 menu, sesuai referensi) ============ -->
-  <!-- Sengaja DI LUAR #app supaya position:fixed selalu nempel ke layar,
-       terlepas dari overflow/transform yang diterapkan Framework7 ke
-       root #app untuk animasi halaman. -->
-  <div id="nearby-tabbar" class="ct-tabbar" style="display:none;">
-    <button class="ct-tab active" data-nearby-tab="terdekat">
-      <span class="ct-tab-icon"><i data-lucide="map-pin"></i></span>
-      <span>Terdekat</span>
-    </button>
-    <button class="ct-tab" data-nearby-tab="temukan">
-      <span class="ct-tab-icon"><i data-lucide="compass"></i></span>
-      <span>Temukan</span>
-    </button>
-    <button class="ct-tab" data-nearby-tab="likes">
-      <span class="ct-tab-icon"><i data-lucide="heart"></i></span>
-      <span>Likes</span>
-    </button>
-    <button class="ct-tab" data-nearby-tab="pesan">
-      <span class="ct-tab-icon"><i data-lucide="message-circle"></i></span>
-      <span>Pesan</span>
-      <span id="nearby-tab-messages-badge" class="ct-tab-badge" style="display:none;">0</span>
-    </button>
-    <button class="ct-tab" data-nearby-tab="profil">
-      <span class="ct-tab-icon"><i data-lucide="user"></i></span>
-      <span>Profil</span>
-    </button>
-  </div>
-
-  <!-- ============ BOTTOM TAB BAR (3 menu, dipakai halaman Pesan & Profil -- TIDAK diubah) ============ -->
-  <div id="ct-tabbar" class="ct-tabbar" style="display:none;">
-    <button class="ct-tab" data-tab="nearby">
-      <span class="ct-tab-icon"><i data-lucide="map-pin"></i></span>
-      <span>Terdekat</span>
-    </button>
-    <button class="ct-tab" data-tab="messages">
-      <span class="ct-tab-icon"><i data-lucide="message-circle"></i></span>
-      <span>Pesan</span>
-      <span id="messages-tab-badge" class="ct-tab-badge" style="display:none;">0</span>
-    </button>
-    <button class="ct-tab" data-tab="profile">
-      <span class="ct-tab-icon"><i data-lucide="user"></i></span>
-      <span>Profil</span>
-    </button>
+    <!-- ============ BOTTOM TAB BAR (3 menu, dipakai halaman Nearby, Pesan & Profil) ============ -->
+    <div id="ct-tabbar" class="ct-tabbar" style="display:none;">
+      <button class="ct-tab" data-tab="nearby">
+        <span class="ct-tab-icon"><i data-lucide="map-pin"></i></span>
+        <span>Terdekat</span>
+      </button>
+      <button class="ct-tab" data-tab="messages">
+        <span class="ct-tab-icon"><i data-lucide="message-circle"></i></span>
+        <span>Pesan</span>
+        <span id="messages-tab-badge" class="ct-tab-badge" style="display:none;">0</span>
+      </button>
+      <button class="ct-tab" data-tab="profile">
+        <span class="ct-tab-icon"><i data-lucide="user"></i></span>
+        <span>Profil</span>
+      </button>
+    </div>
   </div>
 
   <!-- Framework7 (lokal) -->
@@ -332,36 +304,5 @@
   <script src="js/messages.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/app.js"></script>
-
-  <div id="ct-debug" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#000;color:#0f0;font:11px monospace;padding:8px;max-height:40vh;overflow:auto;white-space:pre-wrap;"></div>
-<script>
-(function () {
-  var log = document.getElementById('ct-debug');
-  function out(msg) {
-    log.textContent += msg + '\n';
-  }
-
-  window.addEventListener('error', function (e) {
-    out('❌ JS ERROR: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')');
-  });
-
-  setTimeout(function () {
-    var tb = document.getElementById('nearby-tabbar');
-    if (!tb) { out('❌ #nearby-tabbar TIDAK DITEMUKAN di DOM'); return; }
-
-    var cs = getComputedStyle(tb);
-    out('✅ #nearby-tabbar ditemukan');
-    out('inline style.display = "' + tb.style.display + '"');
-    out('computed display = "' + cs.display + '"');
-    out('computed visibility = "' + cs.visibility + '"');
-    out('computed position = "' + cs.position + '"');
-    out('computed z-index = "' + cs.zIndex + '"');
-    out('bounding rect = ' + JSON.stringify(tb.getBoundingClientRect()));
-    out('window.innerHeight = ' + window.innerHeight);
-    out('document height = ' + document.documentElement.scrollHeight);
-    out('page-nearby display = "' + getComputedStyle(document.getElementById('page-nearby')).display + '"');
-  }, 1500);
-})();
-</script>
 </body>
 </html>
