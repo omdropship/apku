@@ -99,13 +99,18 @@
   position: fixed;
   left: 0; right: 0; bottom: 0;
   width: 100%;
+  min-height: 56px;
   display: flex;
+  align-items: stretch;
   background: #fff;
   border-top: 1px solid var(--ct-line);
   padding: 8px 4px calc(6px + env(safe-area-inset-bottom));
-  z-index: 500;
+  z-index: 9999;
   box-shadow: 0 -6px 18px -12px rgba(31, 22, 32, 0.3);
   border-radius: 20px 20px 0 0;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .ct-tab {
