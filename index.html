@@ -124,27 +124,26 @@
             <p class="ct-footer-note">ChatTeman &middot; Ngobrol dengan orang terdekat</p>
           </div>
 
-          <!-- ============ HALAMAN NEARBY (RADAR / SWIPE) ============ -->
-          <div id="page-nearby" class="chatteman-page" style="display:none;">
-            <div class="ct-appbar">
-              <div class="ct-appbar-title">Terdekat
-                <span class="ct-appbar-subtitle" id="network-status">Mengecek koneksi...</span>
+          <!-- ============ HALAMAN NEARBY (GRID 3 KOLOM) ============ -->
+          <div id="page-nearby" class="chatteman-page ct-nearby-page" style="display:none; padding-left:0; padding-right:0;">
+            <div class="ct-nearby-topbar">
+              <div class="ct-nearby-topbar-row">
+                <span id="network-status" class="ct-appbar-subtitle">Mengecek koneksi...</span>
+                <button id="update-location-btn" class="icon-btn ct-nearby-locate-btn" title="Perbarui lokasi saya"><i data-lucide="map-pin"></i></button>
               </div>
-              <div class="ct-appbar-actions">
-                <button id="update-location-btn" class="icon-btn" title="Perbarui lokasi saya"><i data-lucide="map-pin"></i></button>
-                <button id="refresh-list-btn" class="icon-btn" title="Muat ulang"><i data-lucide="refresh-cw"></i></button>
+              <div class="ct-radius-filter" id="radius-filter">
+                <button class="ct-radius-chip" data-radius="0.05">50m</button>
+                <button class="ct-radius-chip" data-radius="0.1">100m</button>
+                <button class="ct-radius-chip" data-radius="0.5">500m</button>
+                <button class="ct-radius-chip active" data-radius="1">1km</button>
+                <button class="ct-radius-chip" data-radius="5">5km</button>
               </div>
             </div>
 
-            <p id="nearby-status" class="ct-status-msg chip" style="display:none;"></p>
+            <p id="nearby-status" class="ct-status-msg chip" style="display:none; margin-left:12px; margin-right:12px;"></p>
 
-            <div class="ct-swipe-stack" id="nearby-swipe-stack">
-              <!-- Kartu dirender via JS (nearby.js + app.js) -->
-            </div>
-
-            <div class="ct-swipe-actions">
-              <button id="swipe-pass-btn" class="ct-fab ct-fab-pass" title="Lewati"><i data-lucide="x"></i></button>
-              <button id="swipe-like-btn" class="ct-fab ct-fab-like" title="Suka"><i data-lucide="heart"></i></button>
+            <div class="ct-nearby-grid" id="nearby-grid">
+              <!-- Kartu grid dirender via JS (app.js: chattemanRenderNearbyGrid) -->
             </div>
           </div>
 
@@ -271,7 +270,32 @@
       </div>
     </div>
 
-    <!-- ============ BOTTOM TAB BAR (tampil setelah login) ============ -->
+    <!-- ============ BOTTOM NAV KHUSUS NEARBY (5 menu, sesuai referensi) ============ -->
+    <div id="nearby-tabbar" class="ct-tabbar" style="display:none;">
+      <button class="ct-tab active" data-nearby-tab="terdekat">
+        <span class="ct-tab-icon"><i data-lucide="map-pin"></i></span>
+        <span>Terdekat</span>
+      </button>
+      <button class="ct-tab" data-nearby-tab="temukan">
+        <span class="ct-tab-icon"><i data-lucide="compass"></i></span>
+        <span>Temukan</span>
+      </button>
+      <button class="ct-tab" data-nearby-tab="likes">
+        <span class="ct-tab-icon"><i data-lucide="heart"></i></span>
+        <span>Likes</span>
+      </button>
+      <button class="ct-tab" data-nearby-tab="pesan">
+        <span class="ct-tab-icon"><i data-lucide="message-circle"></i></span>
+        <span>Pesan</span>
+        <span id="nearby-tab-messages-badge" class="ct-tab-badge" style="display:none;">0</span>
+      </button>
+      <button class="ct-tab" data-nearby-tab="profil">
+        <span class="ct-tab-icon"><i data-lucide="user"></i></span>
+        <span>Profil</span>
+      </button>
+    </div>
+
+    <!-- ============ BOTTOM TAB BAR (3 menu, dipakai halaman Pesan & Profil -- TIDAK diubah) ============ -->
     <div id="ct-tabbar" class="ct-tabbar" style="display:none;">
       <button class="ct-tab" data-tab="nearby">
         <span class="ct-tab-icon"><i data-lucide="map-pin"></i></span>
