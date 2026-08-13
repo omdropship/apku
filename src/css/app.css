@@ -158,7 +158,48 @@
   padding: 0 3px;
 }
 
-/* ===== Nearby header ===== */
+/* ===== Modal pop-up (bottom-sheet) untuk Teman/Permintaan/Terkirim/Diblokir ===== */
+.ct-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 12, 14, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 10000;
+  animation: ct-modal-fade 0.18s ease;
+}
+
+@keyframes ct-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ct-modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 78vh;
+  background: var(--ct-card, #fff);
+  border-radius: 22px 22px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  box-shadow: 0 -12px 30px -10px rgba(31, 22, 32, 0.35);
+  animation: ct-modal-slide-up 0.22s ease;
+}
+
+@keyframes ct-modal-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.ct-modal-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ct-line);
+  margin: 6px auto 12px;
+}
+
 /* Sub-header untuk panel di dalam halaman (mis. daftar Teman, Edit
    Profil) -- lebih ringan dari .ct-appbar (tanpa elevasi ganda) supaya
    tetap terasa satu bahasa desain tanpa numpuk shadow di dalam halaman
