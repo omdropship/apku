@@ -9,7 +9,7 @@
    chattemanAuthIsLoggedIn, chattemanAuthGetUser, chattemanAuthLogin,
    chattemanAuthRegister, chattemanAuthCheckUsername, chattemanAuthLogout,
    chattemanAuthClearSession,
-   chattemanNearbyUpdateLocation, chattemanNearbyFetchList, chattemanNearbyLikeUser,
+   chattemanNearbyUpdateLocation, chattemanNearbyFetchList,
    chattemanMessagesFetchList, chattemanMessagesFetchConversation, chattemanMessagesSend,
    chattemanProfileFetch, chattemanProfileEdit, chattemanProfileUploadAvatar, chattemanFriendAction,
    chattemanFriendsFetchList, chattemanFriendsFetchRequests, chattemanFriendsFetchSent,
@@ -43,6 +43,7 @@ var $pageMessages = document.getElementById('page-messages');
 var $pageChat = document.getElementById('page-chat');
 var $pageProfile = document.getElementById('page-profile');
 var $tabbar = document.getElementById('ct-tabbar');
+var $nearbyTabbar = document.getElementById('nearby-tabbar');
 
 var ALL_PAGES = [$pageLogin, $pageRegister, $pageNearby, $pageMessages, $pageChat, $pageProfile];
 
@@ -51,8 +52,14 @@ function hideAllPages() {
 }
 
 function setActiveTab(name) {
-  document.querySelectorAll('.ct-tab').forEach(function (btn) {
+  $tabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
     btn.classList.toggle('active', btn.dataset.tab === name);
+  });
+}
+
+function setActiveNearbyTab(name) {
+  $nearbyTabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.nearbyTab === name);
   });
 }
 
@@ -60,25 +67,29 @@ function chattemanShowLoginPage() {
   hideAllPages();
   $pageLogin.style.display = '';
   $tabbar.style.display = 'none';
+  $nearbyTabbar.style.display = 'none';
 }
 
 function chattemanShowRegisterPage() {
   hideAllPages();
   $pageRegister.style.display = '';
   $tabbar.style.display = 'none';
+  $nearbyTabbar.style.display = 'none';
 }
 
 function chattemanShowNearbyPage() {
   hideAllPages();
   $pageNearby.style.display = '';
-  $tabbar.style.display = 'flex';
-  setActiveTab('nearby');
+  $tabbar.style.display = 'none';
+  $nearbyTabbar.style.display = 'flex';
+  setActiveNearbyTab('terdekat');
 }
 
 function chattemanShowMessagesPage() {
   hideAllPages();
   $pageMessages.style.display = '';
   $tabbar.style.display = 'flex';
+  $nearbyTabbar.style.display = 'none';
   setActiveTab('messages');
   chattemanLoadMessagesList();
 }
@@ -87,6 +98,7 @@ function chattemanShowProfilePage() {
   hideAllPages();
   $pageProfile.style.display = '';
   $tabbar.style.display = 'flex';
+  $nearbyTabbar.style.display = 'none';
   setActiveTab('profile');
   chattemanCloseProfilePanels();
   chattemanLoadOwnProfile();
@@ -96,18 +108,31 @@ function chattemanShowChatPage(guid, name) {
   hideAllPages();
   $pageChat.style.display = '';
   $tabbar.style.display = 'none';
+  $nearbyTabbar.style.display = 'none';
   document.getElementById('chat-name').textContent = name || 'Pengguna';
   var $avatar = document.getElementById('chat-avatar');
   $avatar.textContent = (name || '?').charAt(0).toUpperCase();
   chattemanOpenConversation(guid, name);
 }
 
-document.querySelectorAll('.ct-tab').forEach(function (btn) {
+$tabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
   btn.addEventListener('click', function () {
     var tab = btn.dataset.tab;
     if (tab === 'nearby') chattemanShowNearbyPage();
     if (tab === 'messages') chattemanShowMessagesPage();
     if (tab === 'profile') chattemanShowProfilePage();
+  });
+});
+
+$nearbyTabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var tab = btn.dataset.nearbyTab;
+    if (tab === 'terdekat') { setActiveNearbyTab('terdekat'); return; }
+    if (tab === 'pesan') { chattemanShowMessagesPage(); return; }
+    if (tab === 'profil') { chattemanShowProfilePage(); return; }
+    // 'temukan' & 'likes' belum ada halaman/API-nya -- placeholder saja
+    // sesuai referensi, tidak mengubah fungsi Nearby yang sudah ada.
+    chattemanToast('Segera hadir');
   });
 });
 
@@ -227,8 +252,7 @@ document.getElementById('logout-btn').addEventListener('click', function () {
   chattemanShowLoginPage();
 });
 
-// ================= NEARBY (RADAR / SWIPE) =================
-var chattemanNearbyQueue = [];
+// ================= NEARBY (GRID 3 KOLOM) =================
 
 document.getElementById('update-location-btn').addEventListener('click', async function () {
   var $btn = this;
@@ -254,58 +278,60 @@ document.getElementById('update-location-btn').addEventListener('click', async f
   if (result.ok) chattemanLoadNearbyList();
 });
 
-document.getElementById('refresh-list-btn').addEventListener('click', function () {
-  chattemanLoadNearbyList();
-});
+var chattemanNearbyRadius = 1; // km -- default sesuai chip aktif "1km" di HTML
 
 function chattemanNearbyInitials(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
-function chattemanRenderSwipeStack() {
-  var $stack = document.getElementById('nearby-swipe-stack');
-  var user = chattemanNearbyQueue[0];
+// Tap kartu grid = langsung buka pesan pribadi dengan orang itu (bukan
+// kirim suka lagi) -- pakai halaman chat yang sudah ada persis seperti
+// saat tap item di daftar Pesan.
+function chattemanNearbyGridCardTap(guid, name) {
+  if (!guid) return;
+  chattemanShowChatPage(guid, name);
+}
 
-  if (!user) {
-    $stack.innerHTML =
-      '<div class="ct-swipe-empty">' +
+function chattemanRenderNearbyGrid(users) {
+  var $grid = document.getElementById('nearby-grid');
+
+  if (!users || users.length === 0) {
+    $grid.innerHTML =
+      '<div class="ct-nearby-empty">' +
         '<div class="emoji"><i data-lucide="compass"></i></div>' +
         '<strong>Belum ada orang baru di sekitarmu</strong>' +
-        '<p>Coba perbarui lokasi atau muat ulang daftar.</p>' +
+        '<p>Coba perbarui lokasi atau ganti radius.</p>' +
       '</div>';
     chattemanRefreshIcons();
     return;
   }
 
-  var name = chattemanEscapeHtml(user.name || user.username || 'Pengguna');
-  var distance = (typeof user.distance === 'number') ? user.distance + ' km' : '';
-  var age = user.age ? (user.age + ' th') : '';
-  var online = user.online
-    ? '<span class="ct-dot online"></span>Online'
-    : (distance || age ? '' : '<span class="ct-dot offline"></span>Offline');
-  var photoHtml = user.photo
-    ? '<img src="' + chattemanEscapeHtml(user.photo) + '" alt="" />'
-    : chattemanNearbyInitials(name);
+  $grid.innerHTML = users.map(function (user) {
+    var guid = user.guid || user.id || '';
+    var name = chattemanEscapeHtml(user.name || user.username || 'Pengguna');
+    var age = user.age ? (', ' + user.age) : '';
+    var dot = user.online ? '<span class="ct-dot online"></span>' : '';
+    var photoHtml = user.photo
+      ? '<img src="' + chattemanEscapeHtml(user.photo) + '" alt="" loading="lazy" />'
+      : chattemanNearbyInitials(name);
 
-  $stack.innerHTML =
-    '<div class="ct-swipe-card">' +
-      '<div class="ct-card-photo">' + photoHtml + '</div>' +
-      '<div class="ct-card-gradient"></div>' +
-      '<div class="ct-card-info">' +
-        '<div class="name-row"><strong>' + name + '</strong>' + (age ? '<span>' + age + '</span>' : '') + '</div>' +
-        '<div class="meta">' + [distance, online].filter(Boolean).join(' &middot; ') + '</div>' +
-      '</div>' +
-    '</div>';
+    return (
+      '<div class="ct-nearby-card" data-guid="' + chattemanEscapeHtml(guid) + '" data-name="' + name + '">' +
+        '<div class="ct-nearby-photo">' + photoHtml + '</div>' +
+        '<div class="ct-nearby-meta">' + name + age + dot + '</div>' +
+      '</div>'
+    );
+  }).join('');
 }
 
 async function chattemanLoadNearbyList() {
   var $status = document.getElementById('nearby-status');
-  var $stack = document.getElementById('nearby-swipe-stack');
+  var $grid = document.getElementById('nearby-grid');
 
-  $stack.innerHTML = '<div class="ct-swipe-empty"><div class="emoji ct-spin"><i data-lucide="loader-circle"></i></div>Memuat...</div>';
+  $grid.innerHTML = '<div class="ct-nearby-empty"><div class="emoji ct-spin"><i data-lucide="loader-circle"></i></div>Memuat...</div>';
   chattemanRefreshIcons();
 
-  var result = await chattemanNearbyFetchList({ radius: 25 });
+  var result = await chattemanNearbyFetchList({ radius: chattemanNearbyRadius });
 
   if (result.__unauthorized) {
     chattemanAuthClearSession();
@@ -317,38 +343,30 @@ async function chattemanLoadNearbyList() {
     $status.textContent = result.message;
     $status.className = 'ct-status-msg chip offline';
     $status.style.display = '';
-    chattemanNearbyQueue = [];
-    chattemanRenderSwipeStack();
+    chattemanRenderNearbyGrid([]);
     return;
   }
 
   $status.style.display = 'none';
-  chattemanNearbyQueue = result.users.slice();
-  chattemanRenderSwipeStack();
+  chattemanRenderNearbyGrid(result.users);
 }
 
-document.getElementById('swipe-pass-btn').addEventListener('click', function () {
-  if (!chattemanNearbyQueue.length) return;
-  chattemanNearbyQueue.shift();
-  chattemanRenderSwipeStack();
+document.getElementById('nearby-grid').addEventListener('click', function (e) {
+  var $card = e.target.closest('.ct-nearby-card');
+  if (!$card) return;
+  chattemanNearbyGridCardTap($card.dataset.guid, $card.dataset.name);
 });
 
-document.getElementById('swipe-like-btn').addEventListener('click', async function () {
-  var user = chattemanNearbyQueue[0];
-  if (!user) return;
-  var guid = user.guid || user.id;
+document.getElementById('radius-filter').addEventListener('click', function (e) {
+  var $chip = e.target.closest('.ct-radius-chip');
+  if (!$chip) return;
 
-  chattemanNearbyQueue.shift();
-  chattemanRenderSwipeStack();
+  document.querySelectorAll('#radius-filter .ct-radius-chip').forEach(function (c) {
+    c.classList.toggle('active', c === $chip);
+  });
 
-  if (!guid) return;
-  var result = await chattemanNearbyLikeUser(guid);
-  if (result.__unauthorized) {
-    chattemanAuthClearSession();
-    chattemanShowLoginPage();
-    return;
-  }
-  chattemanToast(result.ok ? 'Permintaan pertemanan terkirim' : result.message);
+  chattemanNearbyRadius = parseFloat($chip.dataset.radius) || 1;
+  chattemanLoadNearbyList();
 });
 
 // ================= PESAN (DAFTAR + CHAT) =================
@@ -455,13 +473,16 @@ async function chattemanLoadMessagesList() {
   var totalUnread = result.conversations.reduce(function (sum, c) {
     return sum + (c.unread_count || c.unread || 0);
   }, 0);
-  var $badge = document.getElementById('messages-tab-badge');
-  if (totalUnread > 0) {
-    $badge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
-    $badge.style.display = 'flex';
-  } else {
-    $badge.style.display = 'none';
-  }
+  var badgeText = totalUnread > 99 ? '99+' : String(totalUnread);
+  [document.getElementById('messages-tab-badge'), document.getElementById('nearby-tab-messages-badge')].forEach(function ($badge) {
+    if (!$badge) return;
+    if (totalUnread > 0) {
+      $badge.textContent = badgeText;
+      $badge.style.display = 'flex';
+    } else {
+      $badge.style.display = 'none';
+    }
+  });
 }
 
 document.getElementById('messages-list').addEventListener('click', function (e) {
