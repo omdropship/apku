@@ -104,6 +104,38 @@ function copyFramework7Assets() {
   }
 }
 
+function copySocketIoAssets() {
+  const destDir = path.join(WWW, 'assets', 'socketio');
+  fs.mkdirSync(destDir, { recursive: true });
+
+  const socketDir = path.join(NODE_MODULES, 'socket.io-client');
+  const socketJs = findFiles(socketDir, /^socket\.io(\.min)?\.js$/i);
+
+  if (socketJs.length === 0) {
+    log('PERINGATAN: bundle socket.io-client tidak ditemukan di node_modules, chat real-time dilewati.');
+    return;
+  }
+
+  fs.copyFileSync(socketJs[0], path.join(destDir, 'socket.io.min.js'));
+  log(`Socket.IO client disalin dari ${path.relative(ROOT, socketJs[0])}`);
+}
+
+function copyLucideAssets() {
+  const destDir = path.join(WWW, 'assets', 'lucide');
+  fs.mkdirSync(destDir, { recursive: true });
+
+  const lucideDir = path.join(NODE_MODULES, 'lucide');
+  const lucideJs = findFiles(lucideDir, /^lucide\.min\.js$/i);
+
+  if (lucideJs.length === 0) {
+    log('PERINGATAN: bundle lucide (lucide.min.js) tidak ditemukan di node_modules, ikon dilewati.');
+    return;
+  }
+
+  fs.copyFileSync(lucideJs[0], path.join(destDir, 'lucide.min.js'));
+  log(`Lucide icons disalin dari ${path.relative(ROOT, lucideJs[0])}`);
+}
+
 function main() {
   log('Membersihkan folder www/ ...');
   rmrf(WWW);
@@ -117,6 +149,12 @@ function main() {
 
   log('Menyalin bundle Framework7 dari node_modules ...');
   copyFramework7Assets();
+
+  log('Menyalin bundle Socket.IO client dari node_modules ...');
+  copySocketIoAssets();
+
+  log('Menyalin bundle Lucide icons dari node_modules ...');
+  copyLucideAssets();
 
   log('Selesai. Folder www/ siap dipakai Capacitor (webDir).');
 }
