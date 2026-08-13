@@ -18,6 +18,19 @@
   --ct-radius: 18px;
 }
 
+/* Ikon Lucide (SVG lokal) -- ukuran default sedang, mewarisi warna teks
+   di sekitarnya lewat currentColor supaya otomatis sesuai konteks. */
+[data-lucide], .lucide { display: inline-flex; }
+.icon-btn svg, .ct-appbar-back svg, .ct-avatar-edit-btn svg { width: 19px; height: 19px; stroke-width: 2.1; }
+.ct-tab-icon svg { width: 22px; height: 22px; stroke-width: 2; }
+.ct-fab svg { width: 24px; height: 24px; stroke-width: 2.2; }
+.ct-fab-like svg { width: 27px; height: 27px; }
+.ct-send-btn svg { width: 18px; height: 18px; stroke-width: 2.3; }
+.ct-menu-icon svg { width: 19px; height: 19px; stroke-width: 2; color: var(--ct-primary); }
+.ct-swipe-empty .emoji svg, .ct-empty-state .emoji svg { width: 40px; height: 40px; stroke-width: 1.6; color: var(--ct-ink-soft); }
+.ct-spin svg { animation: ct-icon-spin 0.9s linear infinite; }
+@keyframes ct-icon-spin { to { transform: rotate(360deg); } }
+
 body, html, #app {
   background: var(--ct-bg);
   color: var(--ct-ink);
@@ -49,3 +62,12 @@ body, html, #app {
 
 .chip.online { background: rgba(46, 204, 113, 0.15); color: #1f9c53; }
 .chip.offline { background: rgba(224, 53, 91, 0.12); color: var(--ct-danger); }
+
+/* Titik status online/offline -- satu komponen dipakai di semua tempat
+   (kartu nearby, daftar pesan, header chat) supaya konsisten. */
+.ct-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; margin-right: 5px; vertical-align: middle;
+}
+.ct-dot.online { background: var(--ct-online); }
+.ct-dot.offline { background: var(--ct-ink-soft); }
