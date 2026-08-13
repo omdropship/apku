@@ -43,12 +43,24 @@ var $pageMessages = document.getElementById('page-messages');
 var $pageChat = document.getElementById('page-chat');
 var $pageProfile = document.getElementById('page-profile');
 var $tabbar = document.getElementById('ct-tabbar');
-var $nearbyTabbar = document.getElementById('nearby-tabbar');
 
 var ALL_PAGES = [$pageLogin, $pageRegister, $pageNearby, $pageMessages, $pageChat, $pageProfile];
 
 function hideAllPages() {
   ALL_PAGES.forEach(function (el) { el.style.display = 'none'; });
+}
+
+function chattemanEnsureTabbarVisible() {
+  if ($tabbar.style.display !== 'flex') return;
+  requestAnimationFrame(function () {
+    var rect = $tabbar.getBoundingClientRect();
+    var cs = getComputedStyle($tabbar);
+    if (rect.height === 0 || cs.display === 'none' || cs.visibility === 'hidden') {
+      console.warn('[ChatTeman] Footer tabbar tidak terlihat, memaksa tampil ulang.');
+      $tabbar.style.setProperty('display', 'flex', 'important');
+      $tabbar.style.setProperty('visibility', 'visible', 'important');
+    }
+  });
 }
 
 function setActiveTab(name) {
@@ -57,58 +69,49 @@ function setActiveTab(name) {
   });
 }
 
-function setActiveNearbyTab(name) {
-  $nearbyTabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
-    btn.classList.toggle('active', btn.dataset.nearbyTab === name);
-  });
-}
-
 function chattemanShowLoginPage() {
   hideAllPages();
   $pageLogin.style.display = '';
   $tabbar.style.display = 'none';
-  $nearbyTabbar.style.display = 'none';
 }
 
 function chattemanShowRegisterPage() {
   hideAllPages();
   $pageRegister.style.display = '';
   $tabbar.style.display = 'none';
-  $nearbyTabbar.style.display = 'none';
 }
 
 function chattemanShowNearbyPage() {
   hideAllPages();
   $pageNearby.style.display = '';
-  $tabbar.style.display = 'none';
-  $nearbyTabbar.style.display = 'flex';
-  setActiveNearbyTab('terdekat');
+  $tabbar.style.display = 'flex';
+  setActiveTab('nearby');
+  chattemanEnsureTabbarVisible();
 }
 
 function chattemanShowMessagesPage() {
   hideAllPages();
   $pageMessages.style.display = '';
   $tabbar.style.display = 'flex';
-  $nearbyTabbar.style.display = 'none';
   setActiveTab('messages');
   chattemanLoadMessagesList();
+  chattemanEnsureTabbarVisible();
 }
 
 function chattemanShowProfilePage() {
   hideAllPages();
   $pageProfile.style.display = '';
   $tabbar.style.display = 'flex';
-  $nearbyTabbar.style.display = 'none';
   setActiveTab('profile');
   chattemanCloseProfilePanels();
   chattemanLoadOwnProfile();
+  chattemanEnsureTabbarVisible();
 }
 
 function chattemanShowChatPage(guid, name) {
   hideAllPages();
   $pageChat.style.display = '';
   $tabbar.style.display = 'none';
-  $nearbyTabbar.style.display = 'none';
   document.getElementById('chat-name').textContent = name || 'Pengguna';
   var $avatar = document.getElementById('chat-avatar');
   $avatar.textContent = (name || '?').charAt(0).toUpperCase();
@@ -121,18 +124,6 @@ $tabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
     if (tab === 'nearby') chattemanShowNearbyPage();
     if (tab === 'messages') chattemanShowMessagesPage();
     if (tab === 'profile') chattemanShowProfilePage();
-  });
-});
-
-$nearbyTabbar.querySelectorAll('.ct-tab').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    var tab = btn.dataset.nearbyTab;
-    if (tab === 'terdekat') { setActiveNearbyTab('terdekat'); return; }
-    if (tab === 'pesan') { chattemanShowMessagesPage(); return; }
-    if (tab === 'profil') { chattemanShowProfilePage(); return; }
-    // 'temukan' & 'likes' belum ada halaman/API-nya -- placeholder saja
-    // sesuai referensi, tidak mengubah fungsi Nearby yang sudah ada.
-    chattemanToast('Segera hadir');
   });
 });
 
@@ -474,15 +465,15 @@ async function chattemanLoadMessagesList() {
     return sum + (c.unread_count || c.unread || 0);
   }, 0);
   var badgeText = totalUnread > 99 ? '99+' : String(totalUnread);
-  [document.getElementById('messages-tab-badge'), document.getElementById('nearby-tab-messages-badge')].forEach(function ($badge) {
-    if (!$badge) return;
+  var $badge = document.getElementById('messages-tab-badge');
+  if ($badge) {
     if (totalUnread > 0) {
       $badge.textContent = badgeText;
       $badge.style.display = 'flex';
     } else {
       $badge.style.display = 'none';
     }
-  });
+  }
 }
 
 document.getElementById('messages-list').addEventListener('click', function (e) {
