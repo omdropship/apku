@@ -25,6 +25,11 @@ async function chattemanMessagesFetchList() {
 
 /**
  * Ambil isi satu percakapan dengan user tertentu (GET messages/conversation?with=).
+ * Catatan: endpoint ini membalas res.data = { with: {...}, messages: [...] },
+ * BUKAN array pesan langsung -- jadi harus diambil dari res.data.messages,
+ * bukan res.data (sebelumnya salah ambil res.data langsung, sehingga
+ * "messages" yang dikembalikan berupa objek, bukan array, dan gagal
+ * dirender di chat-body).
  * @param {string} withGuid
  * @returns {Promise<{ok: boolean, message: string, messages: Array}>}
  */
@@ -43,7 +48,8 @@ async function chattemanMessagesFetchConversation(withGuid) {
     };
   }
 
-  return { ok: true, message: res.message || 'OK', messages: res.data || [] };
+  var messages = (res.data && res.data.messages) || [];
+  return { ok: true, message: res.message || 'OK', messages: messages };
 }
 
 /**
