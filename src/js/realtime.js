@@ -47,6 +47,14 @@ function chattemanRealtimeConnect() {
     reconnection: true,
   });
 
+  chattemanSocket.on('connect', function () {
+    console.log('[ChatTeman] Socket connected, id=' + chattemanSocket.id);
+  });
+
+  chattemanSocket.on('disconnect', function (reason) {
+    console.warn('[ChatTeman] Socket disconnected: ' + reason);
+  });
+
   chattemanSocket.on('new_message', function (msg) {
     chattemanNewMessageListeners.forEach(function (cb) { cb(msg); });
   });
@@ -59,9 +67,12 @@ function chattemanRealtimeConnect() {
     chattemanTypingListeners.forEach(function (cb) { cb(data); });
   });
 
-  // Server socket gagal connect -- diamkan saja, ini fitur tambahan,
-  // bukan fitur inti. Pesan tetap bisa dikirim/dimuat lewat REST API.
-  chattemanSocket.on('connect_error', function () {});
+  // Server socket gagal connect -- fitur lain (REST) tetap jalan normal,
+  // tapi kita log ke console supaya kelihatan kalau lagi debug (sebelumnya
+  // didiamkan total, jadi tidak ada jejak sama sekali kalau gagal connect).
+  chattemanSocket.on('connect_error', function (err) {
+    console.warn('[ChatTeman] Socket connect error: ' + (err && err.message ? err.message : err));
+  });
 }
 
 function chattemanRealtimeCheckPresence(guid, callback) {
