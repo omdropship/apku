@@ -633,7 +633,7 @@ async function chattemanRefreshProfileCounts() {
 }
 
 function chattemanCloseProfilePanels() {
-  document.getElementById('profile-panel').style.display = 'none';
+  document.getElementById('profile-panel-overlay').style.display = 'none';
   document.getElementById('edit-profile-panel').style.display = 'none';
 }
 
@@ -684,7 +684,7 @@ var PROFILE_PANEL_TITLES = {
 
 async function chattemanOpenProfilePanel(kind) {
   chattemanCloseProfilePanels();
-  document.getElementById('profile-panel').style.display = '';
+  document.getElementById('profile-panel-overlay').style.display = 'flex';
   document.getElementById('profile-panel-title').textContent = PROFILE_PANEL_TITLES[kind] || '';
   document.getElementById('profile-panel-list').innerHTML = '<div class="ct-empty-state">Memuat...</div>';
   document.getElementById('profile-panel-list').dataset.kind = kind;
@@ -711,6 +711,9 @@ document.getElementById('menu-requests').addEventListener('click', function () {
 document.getElementById('menu-sent').addEventListener('click', function () { chattemanOpenProfilePanel('sent'); });
 document.getElementById('menu-blocked').addEventListener('click', function () { chattemanOpenProfilePanel('blocked'); });
 document.getElementById('profile-panel-close').addEventListener('click', chattemanCloseProfilePanels);
+document.getElementById('profile-panel-overlay').addEventListener('click', function (e) {
+  if (e.target === this) chattemanCloseProfilePanels();
+});
 
 document.getElementById('profile-panel-list').addEventListener('click', async function (e) {
   var btn = e.target.closest('[data-action]');
