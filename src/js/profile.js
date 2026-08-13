@@ -109,3 +109,53 @@ async function chattemanBlockFetchList() {
   }
   return { ok: true, message: res.message || 'OK', people: res.data || [] };
 }
+
+/**
+ * Upload foto profil (POST upload/avatar, multipart/form-data).
+ * Dipisah dari chattemanApiRequest di api.js karena wrapper itu selalu
+ * mengirim JSON -- upload file butuh FormData & TANPA header
+ * Content-Type manual (browser yang mengisi boundary-nya sendiri).
+ * @param {File} file
+ * @returns {Promise<{ok: boolean, message: string, photo: string|null}>}
+ */
+async function chattemanProfileUploadAvatar(file) {
+  var token = chattemanAuthGetAccessToken();
+  if (!token) {
+    return { ok: false, message: 'Belum login.', __unauthorized: true, photo: null };
+  }
+
+  var formData = new FormData();
+  // Nama field 'avatar' mengikuti dugaan paling umum dipakai backend
+  // OSSN untuk upload gambar -- kalau backend ternyata pakai nama field
+  // lain (mis. 'photo' / 'file'), sesuaikan baris ini.
+  formData.append('avatar', file);
+
+  var response;
+  try {
+    response = await fetch(CHATTEMAN_API_BASE + '/upload/avatar', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: formData,
+    });
+  } catch (networkErr) {
+    return { ok: false, message: 'Tidak bisa terhubung ke server. Periksa koneksi internet Anda.', photo: null };
+  }
+
+  if (response.status === 401) {
+    return { ok: false, message: 'Sesi berakhir, silakan masuk kembali.', __unauthorized: true, photo: null };
+  }
+
+  var payload;
+  try {
+    payload = await response.json();
+  } catch (parseErr) {
+    return { ok: false, message: 'Respons server tidak valid (status ' + response.status + ').', photo: null };
+  }
+
+  if (!payload.success) {
+    return { ok: false, message: payload.message || 'Gagal mengunggah foto.', photo: null };
+  }
+
+  var photo = (payload.data && (payload.data.photo || payload.data.url || payload.data.avatar)) || null;
+  return { ok: true, message: payload.message || 'Foto profil diperbarui.', photo: photo };
+}

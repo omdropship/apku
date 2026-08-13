@@ -11,10 +11,23 @@
    chattemanAuthClearSession,
    chattemanNearbyUpdateLocation, chattemanNearbyFetchList, chattemanNearbyLikeUser,
    chattemanMessagesFetchList, chattemanMessagesFetchConversation, chattemanMessagesSend,
-   chattemanProfileFetch, chattemanProfileEdit, chattemanFriendAction,
+   chattemanProfileFetch, chattemanProfileEdit, chattemanProfileUploadAvatar, chattemanFriendAction,
    chattemanFriendsFetchList, chattemanFriendsFetchRequests, chattemanFriendsFetchSent,
    chattemanBlockAction, chattemanBlockFetchList,
+   chattemanRealtimeConnect, chattemanRealtimeDisconnect, chattemanRealtimeOnNewMessage,
+   chattemanRealtimeOnPresence, chattemanRealtimeCheckPresence, chattemanRealtimeCheckPresenceBatch,
+   chattemanRealtimeOnTyping, chattemanRealtimeEmitTyping,
    chattemanToast, chattemanEscapeHtml */
+
+// Lucide menggambar ulang <i data-lucide="..."> jadi elemen <svg> --
+// dipanggil sekali saat load (untuk ikon statis di index.html), dan lagi
+// tiap kali HTML baru berisi data-lucide disuntik lewat innerHTML (ikon
+// di state kosong/loading yang dirender dinamis oleh JS).
+function chattemanRefreshIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
 
 var app = new Framework7({
   el: '#app',
@@ -102,13 +115,9 @@ document.querySelectorAll('.ct-tab').forEach(function (btn) {
 function chattemanUpdateNetworkStatus() {
   var el = document.getElementById('network-status');
   if (!el) return;
-  if (navigator.onLine) {
-    el.textContent = 'Online';
-    el.className = 'chip online';
-  } else {
-    el.textContent = 'Offline';
-    el.className = 'chip offline';
-  }
+  el.innerHTML = navigator.onLine
+    ? '<span class="ct-dot online"></span>Online'
+    : '<span class="ct-dot offline"></span>Offline';
 }
 window.addEventListener('online', chattemanUpdateNetworkStatus);
 window.addEventListener('offline', chattemanUpdateNetworkStatus);
@@ -138,6 +147,7 @@ document.getElementById('login-form').addEventListener('submit', async function 
   }
 
   chattemanToast(result.message);
+  chattemanRealtimeConnect();
   chattemanShowNearbyPage();
   chattemanLoadNearbyList();
 });
@@ -145,6 +155,10 @@ document.getElementById('login-form').addEventListener('submit', async function 
 document.getElementById('go-to-register').addEventListener('click', function (e) {
   e.preventDefault();
   chattemanShowRegisterPage();
+});
+
+document.getElementById('register-back-btn').addEventListener('click', function () {
+  chattemanShowLoginPage();
 });
 
 document.getElementById('go-to-login').addEventListener('click', function (e) {
@@ -206,6 +220,7 @@ document.getElementById('register-form').addEventListener('submit', async functi
 
 // ---------- Logout ----------
 document.getElementById('logout-btn').addEventListener('click', function () {
+  chattemanRealtimeDisconnect();
   chattemanAuthLogout();
   document.getElementById('login-username').value = '';
   document.getElementById('login-password').value = '';
@@ -254,10 +269,11 @@ function chattemanRenderSwipeStack() {
   if (!user) {
     $stack.innerHTML =
       '<div class="ct-swipe-empty">' +
-        '<div class="emoji">🔭</div>' +
+        '<div class="emoji"><i data-lucide="compass"></i></div>' +
         '<strong>Belum ada orang baru di sekitarmu</strong>' +
         '<p>Coba perbarui lokasi atau muat ulang daftar.</p>' +
       '</div>';
+    chattemanRefreshIcons();
     return;
   }
 
@@ -265,8 +281,8 @@ function chattemanRenderSwipeStack() {
   var distance = (typeof user.distance === 'number') ? user.distance + ' km' : '';
   var age = user.age ? (user.age + ' th') : '';
   var online = user.online
-    ? '<span class="online-dot"></span> Online'
-    : (distance || age ? '' : 'Offline');
+    ? '<span class="ct-dot online"></span>Online'
+    : (distance || age ? '' : '<span class="ct-dot offline"></span>Offline');
   var photoHtml = user.photo
     ? '<img src="' + chattemanEscapeHtml(user.photo) + '" alt="" />'
     : chattemanNearbyInitials(name);
@@ -286,7 +302,8 @@ async function chattemanLoadNearbyList() {
   var $status = document.getElementById('nearby-status');
   var $stack = document.getElementById('nearby-swipe-stack');
 
-  $stack.innerHTML = '<div class="ct-swipe-empty"><div class="emoji">⏳</div>Memuat...</div>';
+  $stack.innerHTML = '<div class="ct-swipe-empty"><div class="emoji ct-spin"><i data-lucide="loader-circle"></i></div>Memuat...</div>';
+  chattemanRefreshIcons();
 
   var result = await chattemanNearbyFetchList({ radius: 25 });
 
@@ -335,12 +352,14 @@ document.getElementById('swipe-like-btn').addEventListener('click', async functi
 });
 
 // ================= PESAN (DAFTAR + CHAT) =================
+var chattemanOnlineMap = {}; // { guid: true/false } -- status online terakhir yang diketahui
+
 function chattemanRenderMessagesList(conversations) {
   var $list = document.getElementById('messages-list');
 
   if (!conversations || conversations.length === 0) {
     $list.innerHTML =
-      '<div class="ct-empty-state"><div class="emoji">💬</div>Belum ada percakapan.<br/>Mulai dari kartu di halaman Terdekat.</div>';
+      '<div class="ct-empty-state"><div class="emoji"><i data-lucide="message-circle"></i></div>Belum ada percakapan.<br/>Mulai dari kartu di halaman Terdekat.</div>';
     return;
   }
 
@@ -350,13 +369,27 @@ function chattemanRenderMessagesList(conversations) {
     var preview = chattemanEscapeHtml(c.last_message || c.message || '');
     var time = chattemanEscapeHtml(c.time || c.last_time || '');
     var unread = c.unread_count || c.unread || 0;
-    var avatar = c.photo
+
+    // Status online: pakai data terbaru dari event presence kalau ada,
+    // kalau belum ada fallback ke field 'online' dari response messages/list.
+    if (typeof chattemanOnlineMap[guid] === 'undefined' && typeof c.online !== 'undefined') {
+      chattemanOnlineMap[guid] = !!c.online;
+    }
+    var isOnline = !!chattemanOnlineMap[guid];
+
+    var avatarInner = c.photo
       ? '<img class="ct-avatar" src="' + chattemanEscapeHtml(c.photo) + '" alt="" />'
       : '<div class="ct-avatar">' + chattemanNearbyInitials(name) + '</div>';
 
+    var avatarHtml =
+      '<div class="ct-avatar-wrap" data-online-guid="' + chattemanEscapeHtml(guid) + '">' +
+        avatarInner +
+        (isOnline ? '<span class="ct-online-badge"></span>' : '') +
+      '</div>';
+
     return (
       '<div class="ct-conv-item" data-guid="' + chattemanEscapeHtml(guid) + '" data-name="' + name + '">' +
-        avatar +
+        avatarHtml +
         '<div class="ct-conv-body">' +
           '<div class="ct-conv-top">' +
             '<span class="ct-conv-name">' + name + '</span>' +
@@ -368,6 +401,23 @@ function chattemanRenderMessagesList(conversations) {
       '</div>'
     );
   }).join('');
+
+  chattemanRefreshIcons();
+}
+
+// Update badge titik hijau di item daftar pesan secara langsung (tanpa
+// render ulang seluruh daftar) begitu ada event presence masuk.
+function chattemanUpdateMessageListPresence(guid, isOnline) {
+  var $wrap = document.querySelector('.ct-avatar-wrap[data-online-guid="' + CSS.escape(String(guid)) + '"]');
+  if (!$wrap) return;
+  var $existingBadge = $wrap.querySelector('.ct-online-badge');
+  if (isOnline && !$existingBadge) {
+    var badge = document.createElement('span');
+    badge.className = 'ct-online-badge';
+    $wrap.appendChild(badge);
+  } else if (!isOnline && $existingBadge) {
+    $existingBadge.remove();
+  }
 }
 
 async function chattemanLoadMessagesList() {
@@ -394,6 +444,14 @@ async function chattemanLoadMessagesList() {
   $status.style.display = 'none';
   chattemanRenderMessagesList(result.conversations);
 
+  var guids = result.conversations.map(function (c) { return c.guid || c.id; }).filter(Boolean);
+  chattemanRealtimeCheckPresenceBatch(guids, function (onlineMap) {
+    Object.keys(onlineMap).forEach(function (guid) {
+      chattemanOnlineMap[guid] = !!onlineMap[guid];
+      chattemanUpdateMessageListPresence(guid, !!onlineMap[guid]);
+    });
+  });
+
   var totalUnread = result.conversations.reduce(function (sum, c) {
     return sum + (c.unread_count || c.unread || 0);
   }, 0);
@@ -419,7 +477,8 @@ function chattemanRenderChatBody(messages) {
   var myGuid = (chattemanAuthGetUser() || {}).guid;
 
   if (!messages || messages.length === 0) {
-    $body.innerHTML = '<div class="ct-empty-state"><div class="emoji">👋</div>Mulai obrolan pertamamu.</div>';
+    $body.innerHTML = '<div class="ct-empty-state"><div class="emoji"><i data-lucide="message-square-plus"></i></div>Mulai obrolan pertamamu.</div>';
+    chattemanRefreshIcons();
     return;
   }
 
@@ -440,8 +499,20 @@ function chattemanRenderChatBody(messages) {
 
 async function chattemanOpenConversation(guid, name) {
   chattemanCurrentChatGuid = guid;
+  clearTimeout(chattemanTypingHideTimer);
   var $body = document.getElementById('chat-body');
+  var $statusEl = document.getElementById('chat-status');
   $body.innerHTML = '<div class="ct-empty-state">Memuat percakapan...</div>';
+  $statusEl.textContent = '...';
+
+  chattemanRealtimeCheckPresence(guid, function (isOnline) {
+    if (chattemanCurrentChatGuid === guid) {
+      chattemanLastKnownPresence = !!isOnline;
+      $statusEl.innerHTML = isOnline
+        ? '<span class="ct-dot online"></span>Online'
+        : '<span class="ct-dot offline"></span>Offline';
+    }
+  });
 
   var result = await chattemanMessagesFetchConversation(guid);
 
@@ -461,7 +532,14 @@ async function chattemanOpenConversation(guid, name) {
 
 document.getElementById('chat-back-btn').addEventListener('click', function () {
   chattemanCurrentChatGuid = null;
+  clearTimeout(chattemanTypingHideTimer);
   chattemanShowMessagesPage();
+});
+
+document.getElementById('chat-input').addEventListener('input', function () {
+  if (chattemanCurrentChatGuid) {
+    chattemanRealtimeEmitTyping(chattemanCurrentChatGuid);
+  }
 });
 
 document.getElementById('chat-input-row').addEventListener('submit', async function (e) {
@@ -649,6 +727,29 @@ document.getElementById('profile-panel-list').addEventListener('click', async fu
   chattemanRefreshProfileCounts();
 });
 
+// ---------- Upload foto profil ----------
+document.getElementById('avatar-edit-btn').addEventListener('click', function () {
+  document.getElementById('avatar-file-input').click();
+});
+
+document.getElementById('avatar-file-input').addEventListener('change', async function () {
+  var file = this.files && this.files[0];
+  this.value = ''; // reset supaya bisa pilih file yang sama lagi nanti
+  if (!file) return;
+
+  chattemanToast('Mengunggah foto...');
+  var result = await chattemanProfileUploadAvatar(file);
+
+  if (result.__unauthorized) {
+    chattemanAuthClearSession();
+    chattemanShowLoginPage();
+    return;
+  }
+
+  chattemanToast(result.message);
+  if (result.ok) chattemanLoadOwnProfile();
+});
+
 // ---------- Edit profil ----------
 document.getElementById('menu-edit-profile').addEventListener('click', function () {
   chattemanCloseProfilePanels();
@@ -689,11 +790,86 @@ document.getElementById('edit-profile-form').addEventListener('submit', async fu
   }
 });
 
+var chattemanTypingHideTimer = null;
+function chattemanShowTypingIndicator() {
+  var $statusEl = document.getElementById('chat-status');
+  $statusEl.innerHTML = '<span class="ct-typing-dots"><span></span><span></span><span></span></span>mengetik...';
+  $statusEl.classList.add('is-typing');
+
+  var $body = document.getElementById('chat-body');
+  if (!document.getElementById('typing-bubble')) {
+    var bubble = document.createElement('div');
+    bubble.id = 'typing-bubble';
+    bubble.className = 'ct-bubble them typing';
+    bubble.innerHTML = '<span class="ct-typing-dots"><span></span><span></span><span></span></span>';
+    $body.appendChild(bubble);
+    $body.scrollTop = $body.scrollHeight;
+  }
+
+  clearTimeout(chattemanTypingHideTimer);
+  chattemanTypingHideTimer = setTimeout(chattemanHideTypingIndicator, 3000);
+}
+
+function chattemanHideTypingIndicator() {
+  var $statusEl = document.getElementById('chat-status');
+  $statusEl.classList.remove('is-typing');
+  $statusEl.innerHTML = chattemanLastKnownPresence
+    ? '<span class="ct-dot online"></span>Online'
+    : '<span class="ct-dot offline"></span>Offline';
+
+  var $bubble = document.getElementById('typing-bubble');
+  if ($bubble) $bubble.remove();
+}
+
+var chattemanLastKnownPresence = false;
+
+chattemanRealtimeOnTyping(function (data) {
+  var fromGuid = data && (data.from || data.guid);
+  if (!chattemanCurrentChatGuid || String(fromGuid) !== String(chattemanCurrentChatGuid)) return;
+  if ($pageChat.style.display === 'none') return;
+  chattemanShowTypingIndicator();
+});
+
+chattemanRealtimeOnPresence(function (data) {
+  if (!data) return;
+  var guid = data.guid || data.id;
+  if (!guid) return;
+
+  chattemanOnlineMap[guid] = !!data.online;
+  chattemanUpdateMessageListPresence(guid, !!data.online);
+
+  if (chattemanCurrentChatGuid && String(guid) === String(chattemanCurrentChatGuid)) {
+    chattemanLastKnownPresence = !!data.online;
+    var $statusEl = document.getElementById('chat-status');
+    if ($statusEl && !$statusEl.classList.contains('is-typing')) {
+      $statusEl.innerHTML = data.online
+        ? '<span class="ct-dot online"></span>Online'
+        : '<span class="ct-dot offline"></span>Offline';
+    }
+  }
+});
+
+// ---------- Realtime: pesan masuk otomatis update chat & badge ----------
+chattemanRealtimeOnNewMessage(function (msg) {
+  var fromGuid = msg.from || msg.sender || msg.guid;
+
+  // Kalau lagi buka percakapan sama orang ini, langsung muat ulang isi chat
+  if ($pageChat.style.display !== 'none' && chattemanCurrentChatGuid && String(fromGuid) === String(chattemanCurrentChatGuid)) {
+    chattemanOpenConversation(chattemanCurrentChatGuid, document.getElementById('chat-name').textContent);
+  }
+
+  // Refresh daftar pesan + badge unread di tab bar (aman dipanggil walau
+  // halaman Pesan sedang tidak aktif, cuma update data di background)
+  chattemanLoadMessagesList();
+});
+
 // ---------- Bootstrap ----------
 document.addEventListener('DOMContentLoaded', function () {
+  chattemanRefreshIcons();
   chattemanUpdateNetworkStatus();
 
   if (chattemanAuthIsLoggedIn()) {
+    chattemanRealtimeConnect();
     chattemanShowNearbyPage();
     chattemanLoadNearbyList();
   } else {

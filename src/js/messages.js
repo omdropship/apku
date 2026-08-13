@@ -64,4 +64,3 @@ async function chattemanMessagesSend(toGuid, text) {
 
   return { ok: true, message: res.message || 'Terkirim.' };
 }
-
