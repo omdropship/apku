@@ -224,13 +224,16 @@
               </button>
             </div>
 
-            <!-- Panel dinamis: teman / permintaan / terkirim / diblokir -->
-            <div id="profile-panel" style="display:none; margin-top:10px;">
-              <div class="ct-subheader">
-                <strong id="profile-panel-title">-</strong>
-                <button id="profile-panel-close" class="icon-btn"><i data-lucide="x"></i></button>
+            <!-- Panel dinamis: teman / permintaan / terkirim / diblokir (pop-up bottom-sheet) -->
+            <div id="profile-panel-overlay" class="ct-modal-overlay" style="display:none;">
+              <div id="profile-panel" class="ct-modal-sheet">
+                <div class="ct-modal-handle"></div>
+                <div class="ct-subheader">
+                  <strong id="profile-panel-title">-</strong>
+                  <button id="profile-panel-close" class="icon-btn"><i data-lucide="x"></i></button>
+                </div>
+                <div id="profile-panel-list" class="ct-people-list ct-conv-list"></div>
               </div>
-              <div id="profile-panel-list" class="ct-people-list ct-conv-list"></div>
             </div>
 
             <!-- Panel edit profil -->
